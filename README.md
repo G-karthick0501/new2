@@ -4,7 +4,7 @@ backend/.env:
 
 PORT=******
 MONGO_URI=mongodb+srv://*********  # or your Atlas URI  //
-JWT_SECRET=supersecretchangeit
+JWT_SECRET=********
 GOOGLE_CLIENT_ID=966194838172-gpmru4pkkjv7d45lrejkkraf2it8k8vc.apps.googleusercontent.com
 
 
