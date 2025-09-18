@@ -1,10 +1,12 @@
+//const dotenv = require("dotenv");
+require("dotenv").config(); 
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
-const authRoutes = require("./src/routes/auth");
 
-dotenv.config();
+const authRoutes = require("./src/routes/auth");
+const codingRoutes = require("./src/routes/coding");
+
 const app = express();
 
 app.use(cors());
@@ -26,6 +28,7 @@ app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
   next();
 });
+app.use("/api/coding", codingRoutes); 
 // simple health check
 app.get("/", (req, res) => res.send("API up"));
 
