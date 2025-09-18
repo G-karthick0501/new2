@@ -1,50 +1,53 @@
+// frontend/src/pages/Dashboard.jsx - UPDATED
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth"; // Assuming you have a useAuth hook
 
 const API_BASE = "http://localhost:5000/api";
 
 export default function Dashboard() {
-  const [me, setMe] = useState(null);
-  const [msg, setMsg] = useState("");
+  const { user, logout, isAuthenticated } = useAuth(); // Use the hook to get user, logout function
   const navigate = useNavigate();
+  const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!isAuthenticated()) {
       navigate("/login");
       return;
     }
 
-    // fetch user profile
+    // fetch user profile is no longer needed here if user object contains all info
+    // However, if we need fresh data from server, we can still fetch.
+    const token = localStorage.getItem("token");
     fetch(`${API_BASE}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
         if (!res.ok) {
-          // token invalid/expired: log out
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
+          logout(); // Use the provided logout function
           navigate("/login");
           return;
         }
         const data = await res.json();
-        setMe(data);
+        // The user is already in context, but we can update it if needed.
+        // setMe(data);
       })
       .catch(() => setMsg("Network error"));
-  }, [navigate]);
 
-  function logout() {
-    localStorage.clear();
+  }, [navigate, isAuthenticated, logout]);
+
+  function handleLogout() {
+    logout();
     navigate("/");
   }
 
   return (
     <div style={{ padding: 20 }}>
       <h2>Dashboard</h2>
-      {me ? (
+      {user ? (
         <>
-          <p>Welcome, <b>{me.name}</b> ({me.email})</p>
-          <button onClick={logout}>Logout</button>
+          <p>Welcome, <b>{user.name}</b> ({user.email})</p>
+          <button onClick={handleLogout}>Logout</button>
         </>
       ) : (
         <p>{msg || "Loading..."}</p>
