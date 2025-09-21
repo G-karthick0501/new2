@@ -1,5 +1,8 @@
-import { useEffect, useState } from "react";
+// frontend/src/pages/CandidateDashboard.jsx - UPDATED
+
+import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import ResumeOptimizer from "./candidate/ResumeOptimizer";
 import CodeEditor from '../components/coding/CodeEditor';
 import { codingService } from '../services/codingService';
 
@@ -8,11 +11,11 @@ export default function CandidateDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
 
   const candidateFeatures = [
-    { id: 'overview', label: '📊 Overview', description: 'Your application status and progress' },
-    { id: 'resume', label: '📄 Resume Optimizer', description: 'AI-powered resume analysis and improvement' },
-    { id: 'interview', label: '🎤 Mock Interview', description: 'Practice interviews with AI feedback' },
-    { id: 'coding', label: '💻 Coding Practice', description: 'Technical challenges and assessments' },
-    { id: 'jobs', label: '🔍 Job Applications', description: 'Browse and apply for positions' }
+    { id: 'overview', label: 'Overview', description: 'Your application status and progress' },
+    { id: 'resume', label: 'Resume Optimizer', description: 'AI-powered resume analysis and improvement' },
+    { id: 'interview', label: 'Mock Interview', description: 'Practice interviews with AI feedback' },
+    { id: 'coding', label: 'Coding Practice', description: 'Technical challenges and assessments' },
+    { id: 'jobs', label: 'Job Applications', description: 'Browse and apply for positions' }
   ];
 
   return (
@@ -28,7 +31,7 @@ export default function CandidateDashboard() {
       }}>
         <div>
           <h1>Candidate Dashboard</h1>
-          <p>Welcome back, <strong>{user?.name}</strong>! 👋</p>
+          <p>Welcome back, <strong>{user?.name}</strong></p>
         </div>
         <button onClick={logout} style={{ 
           padding: '10px 20px', 
@@ -79,10 +82,11 @@ export default function CandidateDashboard() {
   );
 }
 
+// Keep existing components for now (can be modularized later)
 function CandidateOverview() {
   return (
     <div>
-      <h2>📊 Your Progress Overview</h2>
+      <h2>Your Progress Overview</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
         <div style={{ padding: 20, border: '1px solid #ddd', borderRadius: 8 }}>
           <h3>Applications</h3>
@@ -109,28 +113,10 @@ function CandidateOverview() {
   );
 }
 
-function ResumeOptimizer() {
-  return (
-    <div>
-      <h2>📄 Resume Optimizer</h2>
-      <div style={{ border: '2px dashed #ccc', padding: 40, textAlign: 'center', marginBottom: 20 }}>
-        <p>Upload your resume for AI-powered analysis</p>
-        <button style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: 5 }}>
-          Upload Resume
-        </button>
-      </div>
-      <div>
-        <h3>Recent Analysis</h3>
-        <p style={{ color: '#6c757d' }}>No resume uploaded yet. Upload your resume to get started!</p>
-      </div>
-    </div>
-  );
-}
-
 function MockInterview() {
   return (
     <div>
-      <h2>🎤 Mock Interview Practice</h2>
+      <h2>Mock Interview Practice</h2>
       <div style={{ marginBottom: 20 }}>
         <h3>Choose Interview Type:</h3>
         <div style={{ display: 'flex', gap: 15, marginBottom: 20 }}>
@@ -201,7 +187,7 @@ function CodingPractice() {
 
   return (
     <div>
-      <h2>💻 Coding Practice Arena</h2>
+      <h2>Coding Practice Arena</h2>
       
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         <div>
@@ -231,7 +217,7 @@ function CodingPractice() {
 function JobApplications() {
   return (
     <div>
-      <h2>🔍 Job Applications</h2>
+      <h2>Job Applications</h2>
       <div style={{ marginBottom: 20 }}>
         <input 
           type="text" 

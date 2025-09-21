@@ -1,8 +1,7 @@
-// frontend/src/App.jsx - UPDATED
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
-
 // Import pages
 import Home from "./pages/Home.jsx";
 import Signup from "./pages/Signup.jsx";

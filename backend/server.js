@@ -6,6 +6,7 @@ const cors = require("cors");
 
 const authRoutes = require("./src/routes/auth");
 const codingRoutes = require("./src/routes/coding");
+const resumeRoutes = require("./src/routes/resume"); 
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use("/api/coding", codingRoutes); 
+app.use("/api/resume", resumeRoutes);
 // simple health check
 app.get("/", (req, res) => res.send("API up"));
 
