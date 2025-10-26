@@ -3,6 +3,8 @@ const express = require("express");
 const auth = require("../middleware/auth");
 const InterviewSession = require("../models/InterviewSession");
 const { getQuestions,validateQuestionRequest } = require("../services/questionBank");
+const EmotionAggregator = require("../utils/emotionAggregator");
+
 
 const axios = require('axios');
 
@@ -84,6 +86,70 @@ router.post("/response", auth, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ msg: "Failed to save response" });
+  }
+});
+
+// Save emotion data for a question
+router.post("/save-emotion", auth, async (req, res) => {
+  try {
+    const { sessionId, questionIndex, emotionHistory } = req.body;
+    
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ msg: "Session not found" });
+    }
+
+    // Aggregate the emotion data (100+ snapshots → summary)
+    const emotionSummary = EmotionAggregator.aggregate(emotionHistory);
+
+    // Save summary to MongoDB (not all 100+ snapshots!)
+    if (emotionSummary) {
+      session.questions[questionIndex].emotionSummary = emotionSummary;
+      session.markModified(`questions.${questionIndex}.emotionSummary`);
+      await session.save();
+      
+      console.log(`✅ Emotion summary saved: ${emotionSummary.dominantEmotions.join(', ')}`);
+    }
+
+    res.json({ success: true });
+
+  } catch (error) {
+    console.error("❌ Error saving emotion:", error);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+router.get("/emotion-analysis/:sessionId", auth, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ msg: "Session not found" });
+    }
+
+    // Extract emotion analysis from all questions
+    const emotionData = session.questions.map((q, index) => ({
+      questionIndex: index,
+      questionText: q.questionText,
+      hasEmotionAnalysis: !!q.emotionAnalysis,
+      analysis: q.emotionAnalysis || null
+    }));
+
+    res.json({
+      success: true,
+      sessionId,
+      questionsWithEmotion: emotionData.filter(q => q.hasEmotionAnalysis).length,
+      totalQuestions: session.questions.length,
+      emotionData
+    });
+
+  } catch (error) {
+    console.error("❌ Error fetching emotion analysis:", error);
+    res.status(500).json({ 
+      msg: "Server error fetching emotion analysis",
+      error: error.message 
+    });
   }
 });
 

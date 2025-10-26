@@ -50,28 +50,52 @@ export default function InterviewSession({ interview, onComplete }) {
   };
 
   const handleResponseSubmit = async (response, timeSpent) => {
-    // Include emotion data for current question
+    // Generate emotion summary for the current question
+    const questionEmotionHistory = emotionData[currentQuestionIndex] || [];
+    if (questionEmotionHistory.length > 0) {
+      await generateEmotionSummary(questionEmotionHistory);
+    }
+    // Prepare to send emotion data to backend
     const questionEmotionData = emotionData[currentQuestionIndex] || [];
     
-    // You can send emotion data along with response if needed
-    console.log('Emotion data for question', currentQuestionIndex, questionEmotionData);
+    // Call your new endpoint to save emotion summary
+    if (questionEmotionData.length > 0) {
+      try {
+        await fetch('http://localhost:5000/api/interview/save-emotion', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': localStorage.getItem('token')
+          },
+          body: JSON.stringify({
+            sessionId: interview.sessionId,
+            questionIndex: currentQuestionIndex,
+            emotionHistory: questionEmotionData  // Send all snapshots
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('❌ Failed to save emotion:', response.status, errorData);
+          return;
+        } 
+      
+        console.log(`✅ Sent ${questionEmotionData.length} emotion snapshots`);
+      } catch (err) {
+        console.error('Failed to save emotion data:', err);
+      }
+    }
     
+    // Continue with existing code
     await interview.submitResponse(response, timeSpent);
 
     if (isLastQuestion) {
       setIsRecording(false);
-      
-      // Generate emotion summary for entire interview
-      const allEmotions = Object.values(emotionData).flat();
-      if (allEmotions.length > 0) {
-        await generateEmotionSummary(allEmotions);
-      }
-      
       onComplete();
     } else {
       interview.nextQuestion();
     }
-  };
+};
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 20 }}>
