@@ -2,7 +2,7 @@
 import torch
 import librosa
 import numpy as np
-from transformers import Wav2Vec2ForSequenceClassification, Wav2Vec2Processor
+from transformers import Wav2Vec2ForSequenceClassification, AutoFeatureExtractor
 from config import config
 import logging
 import subprocess
@@ -18,7 +18,7 @@ class EmotionAnalyzer:
         
         logger.info(f"Loading model: {config.MODEL_NAME}")
         self.model = Wav2Vec2ForSequenceClassification.from_pretrained(config.MODEL_NAME).to(self.device)
-        self.processor = Wav2Vec2Processor.from_pretrained(config.MODEL_NAME)
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained(config.MODEL_NAME)
         
         self.id2label = self.model.config.id2label
         logger.info(f"Model loaded successfully with emotions: {list(self.id2label.values())}")
@@ -89,7 +89,7 @@ class EmotionAnalyzer:
             audio, sr = self.load_audio(audio_path)
             
             # Preprocess
-            inputs = self.processor(
+            inputs = self.feature_extractor(
                 audio,
                 sampling_rate=sr,
                 return_tensors="pt",
@@ -153,7 +153,7 @@ class EmotionAnalyzer:
             
             for idx, chunk in enumerate(chunks):
                 try:
-                    inputs = self.processor(
+                    inputs = self.feature_extractor(
                         chunk,
                         sampling_rate=sr,
                         return_tensors="pt",

@@ -10,7 +10,7 @@ __pycache__/
 
 # Virtual environments
 .env/
-.venv/
+.venv_emotion/
 venv/
 ENV/
 env.bak/

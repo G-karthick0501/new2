@@ -136,6 +136,54 @@ export function useInterview() {
     setIsLoading(false);
   };
 
+  const [answerMode, setAnswerMode] = useState('text'); // 'text' or 'audio'
+
+
+  // hooks/useInterview.js - ADD audio submission
+  const submitAudioResponse = async (audioBlob, questionIndex, recordingTime) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'answer.webm');
+      formData.append('sessionId', sessionId);
+      formData.append('questionIndex', questionIndex);
+      formData.append('recordingTime', recordingTime);
+
+      console.log('🎤 Uploading audio...');
+
+      const response = await fetch(`${API_BASE}/interview/audio-response`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // Don't set Content-Type - browser sets it with boundary
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Audio upload failed');
+      }
+
+      const data = await response.json();
+      
+      console.log('✅ Audio uploaded:', data);
+      
+      // Store transcription locally
+      setResponses(prev => ({
+        ...prev,
+        [questionIndex]: data.transcription
+      }));
+
+      return data;
+
+    } catch (error) {
+      console.error('Audio submission failed:', error);
+      throw error;
+    }
+  };
+
   return {
     // Existing state
     sessionId,
@@ -156,6 +204,11 @@ export function useInterview() {
     
     // ✅ NEW: Reset function
     resetInterview,
+    submitAudioResponse,
+    
+    // Answer mode state
+    answerMode,
+    setAnswerMode,
     
     // Computed values
     currentQuestion: questions[currentQuestionIndex],

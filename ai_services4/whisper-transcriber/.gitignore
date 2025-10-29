@@ -10,11 +10,19 @@ __pycache__/
 
 # Virtual environments
 .env/
-.venv_resume/
+.venv_whisper/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# MODEL FILES
+*.pt
+*.bin
+models/
+# Ignore all HuggingFace model cache folders
+models/
+models--*/
 
 # Jupyter / notebooks
 .ipynb_checkpoints

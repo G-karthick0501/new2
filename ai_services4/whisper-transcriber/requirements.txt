@@ -1,0 +1,14 @@
+# ai_services4/whisper-transcriber/requirements.txt
+fastapi==0.104.1
+uvicorn==0.24.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
+
+# faster-whisper instead of openai-whisper
+faster-whisper==1.2.0
+torch==2.1.0
+
+# Audio processing (replaces ffmpeg)
+librosa==0.10.1
+soundfile==0.12.1
+numpy==1.24.3

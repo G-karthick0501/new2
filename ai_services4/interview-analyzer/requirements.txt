@@ -1,7 +1,16 @@
-# interview-analyzer requirements (light only)
-fastapi>=0.104.1
-uvicorn>=0.24.0
-python-multipart>=0.0.6
-python-dotenv>=1.0.0
-pydantic>=2.4.2
-starlette>=0.27.0
+```
+fastapi==0.104.1
+uvicorn==0.24.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
+nltk==3.8.1
+spacy==3.7.2
+numpy==1.24.3
+torch==2.1.0
+transformers==4.35.2
+sentence-transformers==2.2.2
+huggingface-hub==0.16.4
+
+
+##python -m nltk.downloader averaged_perceptron_tagger_eng punkt wordnet stopwords vader_lexicon
+##pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl

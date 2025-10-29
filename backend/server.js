@@ -11,12 +11,14 @@ const interviewRoutes = require("./src/routes/interview");
 const notificationRoutes = require("./src/routes/notifications");
 const jobRoutes = require("./src/routes/jobs");
 const applicationRoutes = require("./src/routes/applications");
+const codingProblemRoutes = require("./src/routes/codingProblems");
 const app = express();
 
 app.use(cors());
 app.use(express.json()); // parse JSON request bodies
 app.use("/api/interview", interviewRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/coding-problems", codingProblemRoutes);
 
 app.use(cors({
   origin: [

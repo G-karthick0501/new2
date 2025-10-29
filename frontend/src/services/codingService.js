@@ -1,27 +1,60 @@
-// frontend/src/services/codingService.js
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export const codingService = {
-  async submitCode(sourceCode, languageId, stdin = '') {
+  async getProblems() {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE}/coding/submit`, {
+    const res = await fetch(`${API_BASE}/api/coding-problems`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return res.json();
+  },
+
+  async getProblem(id) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/api/coding-problems/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return res.json();
+  },
+
+  // ✅ FIXED: Added problemId parameter
+  async submitCode(sourceCode, languageId, stdin = "", problemId = null) {
+    const token = localStorage.getItem('token');
+    
+    console.log('📤 Submitting code:', {
+      codeLength: sourceCode.length,
+      languageId,
+      stdinLength: stdin?.length || 0,
+      problemId
+    });
+
+    const res = await fetch(`${API_BASE}/api/coding/submit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ sourceCode, languageId, stdin })
+      body: JSON.stringify({
+        source_code: sourceCode,
+        language_id: languageId,
+        stdin: stdin,
+        problem_id: problemId  // ✅ Include problemId
+      })
     });
-    return await response.json();
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.msg || 'Submission failed');
+    }
+
+    return res.json();
   },
 
   async getSubmissionResults(token) {
     const authToken = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE}/coding/submission/${token}`, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
+    const res = await fetch(`${API_BASE}/api/coding/submission/${token}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
     });
-    return await response.json();
+    return res.json();
   }
 };
