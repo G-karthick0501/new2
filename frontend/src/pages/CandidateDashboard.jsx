@@ -1,5 +1,5 @@
 // src/pages/CandidateDashboard.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import DashboardLayout from "../components/shared/DashboardLayout";
 import Overview from "../components/candidate/Overview";
@@ -19,6 +19,20 @@ export default function CandidateDashboard() {
     { id: 'coding', label: 'Coding Practice' },
     { id: 'jobs', label: 'Job Applications' }
   ];
+
+  // Listen for navigation events from Overview component
+  useEffect(() => {
+    const handleTabChange = (event) => {
+      setActiveTab(event.detail);
+    };
+
+    window.addEventListener('changeTab', handleTabChange);
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener('changeTab', handleTabChange);
+    };
+  }, []);
 
   return (
     <DashboardLayout
