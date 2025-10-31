@@ -13,6 +13,7 @@ const jobRoutes = require("./src/routes/jobs");
 const applicationRoutes = require("./src/routes/applications");
 const codingProblemRoutes = require("./src/routes/codingProblems");
 const candidateRoutes = require("./src/routes/candidate");
+const hrRoutes = require("./src/routes/hr");
 const app = express();
 
 app.use(cors());
@@ -32,7 +33,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
+app.use("/api/hr", hrRoutes);
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
   next();

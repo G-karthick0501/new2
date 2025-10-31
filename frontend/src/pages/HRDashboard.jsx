@@ -1,5 +1,5 @@
 // src/pages/HRDashboard.jsx
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import DashboardLayout from "../components/shared/DashboardLayout";
 import Overview from "../components/hr/Overview";
@@ -11,6 +11,15 @@ import Analytics from "../components/hr/Analytics";
 export default function HRDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+
+  useEffect(() => {
+    const handleTabChange = (event) => {
+      setActiveTab(event.detail);
+    };
+
+    window.addEventListener('changeTab', handleTabChange);
+    return () => window.removeEventListener('changeTab', handleTabChange);
+  }, []);
 
   const tabs = [
     { id: 'overview', label: '📊 Overview' },
@@ -24,7 +33,7 @@ export default function HRDashboard() {
     <DashboardLayout
       title="HR Dashboard"
       subtitle={`Manage your recruitment pipeline, <strong>${user?.name}</strong>! 💼`}
-      activeTab={activeTab}
+      activeTab={activeTab} 
       tabs={tabs}
       onTabChange={setActiveTab}
       accentColor="#28a745"
