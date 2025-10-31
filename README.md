@@ -39,7 +39,24 @@ VITE_GOOGLE_CLIENT_ID=***********
 Resume Analyzer Microservice:
 ```
 cd ai_services4/resume-analyzer
-uvicorn app:app --reload
+uvicorn app:app --reload --port 8000
+```
+
+Interview Analyzer Microservice:
+```
+cd ai_services4/interview-analyzer
+uvicorn app:app --reload --port 8001
+```
+Whisper Transcriberr Microservice:
+```
+cd ai_services4/whisper-transcriber
+uvicorn app:app --reload --port 8003
+```
+
+audio-emotion Microservice:
+```
+cd ai_services4/audio-emotion
+uvicorn app:app --reload --port 8002
 ```
 
 Create a .env in ai_services4/resume-analyzer/ with:
