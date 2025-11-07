@@ -4,6 +4,10 @@
 /out/
 /vendor/
 
+# Node modules in subdirectories
+backend/node_modules/
+frontend/node_modules/
+
 # Operating System Files
 .DS_Store
 Thumbs.db
@@ -13,6 +17,14 @@ Thumbs.db
 .env.local
 .env.production
 .env.development
+backend/.env
+frontend/.env
+
+# Uploaded files
+backend/uploads/
+uploads/
+*.resume.*
+*.jd.*
 
 # Log and Temporary Files
 npm-debug.log*
@@ -21,6 +33,7 @@ yarn-debug.log*
 *.tmp
 *.temp
 /tmp/
+logs/
 
 # Editor and IDE Files
 .vscode/
@@ -39,6 +52,24 @@ yarn-debug.log*
 # Python
 __pycache__/
 *.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Python virtual environments in AI services
+ai_services4/*/venv/
+ai_services4/*/.venv/
+ai_services4/*/__pycache__/
+ai_services4/*/uploads/
+ai_services4/*/logs/
 
 # Java
 *.class
@@ -58,3 +89,20 @@ obj/
 # Other
 coverage/
 .cache
+.parcel-cache/
+.next/
+.nuxt/
+
+# Database files
+*.sqlite
+*.db
+data/
+
+# Test and debug files
+test-applications.js
+APPLICATION_ISSUE_RESOLVED.md
+
+# Lock files (optional - uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

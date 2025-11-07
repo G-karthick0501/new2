@@ -1,5 +1,5 @@
 // frontend/src/components/candidate/ResumeAnalyzer/ResumeAnalyzer.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import FileUpload from './FileUpload';
 import SkillSelectionModal from './SkillSelectionModal';
 import DiffViewer from './DiffViewer';
@@ -8,6 +8,13 @@ import { useResumeAnalysis } from '../../../hooks/useResumeAnalysis';
 export default function ResumeAnalyzer() {
   const [resumeFile, setResumeFile] = useState(null);
   const [jdFile, setJdFile] = useState(null);
+
+  useEffect(() => {
+    // Increment counter when user accesses resume analyzer
+    if (window.incrementFeatureCounter) {
+      window.incrementFeatureCounter('resume');
+    }
+  }, []);
 
   const {
     analyzeResume,
@@ -71,10 +78,14 @@ export default function ResumeAnalyzer() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>AI Resume Analyzer & Optimizer</h2>
-        <p style={styles.description}>
-          Upload your resume and a job description to get AI-powered optimization suggestions
-        </p>
+        {/* Header */}
+        <div style={styles.headerSection}>
+          <div style={styles.iconCircle}>📄</div>
+          <h2 style={styles.title}>AI Resume Analyzer & Optimizer</h2>
+          <p style={styles.description}>
+            Upload your resume and job description to get AI-powered optimization suggestions
+          </p>
+        </div>
 
         {/* STEP 1: FILE UPLOAD */}
         {currentStep === 'upload' && (
@@ -90,13 +101,15 @@ export default function ResumeAnalyzer() {
 
             {uploadStatus && (
               <div style={styles.statusBox}>
+                <div style={styles.statusIcon}>✓</div>
                 <p style={styles.statusText}>{uploadStatus}</p>
               </div>
             )}
 
             {error && (
               <div style={styles.errorBox}>
-                <p style={styles.errorText}>❌ {error}</p>
+                <div style={styles.errorIcon}>⚠</div>
+                <p style={styles.errorText}>{error}</p>
               </div>
             )}
 
@@ -105,11 +118,19 @@ export default function ResumeAnalyzer() {
                 onClick={handleTestConnection}
                 style={{
                   ...styles.button,
-                  ...styles.secondaryButton,
-                  cursor: 'pointer'
+                  ...styles.secondaryButton
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.3)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
                 }}
               >
-                🔌 Test Connection
+                <span style={{ fontSize: 20 }}>🔌</span>
+                Test Connection
               </button>
 
               <button
@@ -118,8 +139,18 @@ export default function ResumeAnalyzer() {
                 style={{
                   ...styles.button,
                   ...styles.primaryButton,
-                  opacity: (!resumeFile || !jdFile || loading) ? 0.5 : 1,
+                  opacity: (!resumeFile || !jdFile || loading) ? 0.6 : 1,
                   cursor: (!resumeFile || !jdFile || loading) ? 'not-allowed' : 'pointer'
+                }}
+                onMouseOver={(e) => {
+                  if (!(!resumeFile || !jdFile || loading)) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
                 }}
               >
                 {loading ? (
@@ -127,25 +158,34 @@ export default function ResumeAnalyzer() {
                     <span style={styles.spinner}>⏳</span> Analyzing...
                   </>
                 ) : (
-                  <>🔍 Analyze Resume</>
+                  <>
+                    <span style={{ fontSize: 20 }}>🔍</span>
+                    Analyze Resume
+                  </>
                 )}
               </button>
             </div>
 
             <div style={styles.instructions}>
-              <h3 style={styles.instructionsTitle}>How it works:</h3>
-              <ol style={styles.instructionsList}>
-                <li>Upload your current resume (PDF)</li>
-                <li>Upload the job description you're targeting (PDF)</li>
-                <li>
-                  <strong>Test Connection</strong> (optional) - Verify backend connectivity
-                </li>
-                <li>
-                  <strong>Analyze Resume</strong> - AI identifies missing skills
-                </li>
-                <li>Select which skills you want to add</li>
-                <li>Get your optimized resume instantly!</li>
-              </ol>
+              <h3 style={styles.instructionsTitle}>
+                <span style={{ fontSize: 24, marginRight: 10 }}>💡</span>
+                How it works:
+              </h3>
+              <div style={styles.instructionsList}>
+                {[
+                  { icon: '📤', text: 'Upload your current resume (PDF)' },
+                  { icon: '📋', text: 'Upload the job description you\'re targeting (PDF)' },
+                  { icon: '🔌', text: 'Test Connection (optional) - Verify backend connectivity' },
+                  { icon: '🤖', text: 'Analyze Resume - AI identifies missing skills' },
+                  { icon: '✔️', text: 'Select which skills you want to add' },
+                  { icon: '🎉', text: 'Get your optimized resume instantly!' }
+                ].map((step, idx) => (
+                  <div key={idx} style={styles.instructionItem}>
+                    <span style={styles.instructionIcon}>{step.icon}</span>
+                    <span style={styles.instructionText}>{step.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}
@@ -168,9 +208,10 @@ export default function ResumeAnalyzer() {
         {currentStep === 'results' && (
           <div style={styles.resultsContainer}>
             <div style={styles.resultsHeader}>
-              <h2 style={styles.resultsTitle}>✅ Resume Optimized!</h2>
+              <div style={styles.successIcon}>✓</div>
+              <h2 style={styles.resultsTitle}>Resume Optimized!</h2>
               <p style={styles.resultsSubtitle}>
-                Successfully added {selectedSkillsCount} skill
+                Successfully added <strong>{selectedSkillsCount}</strong> skill
                 {selectedSkillsCount !== 1 ? 's' : ''} to your resume
               </p>
             </div>
@@ -186,17 +227,26 @@ export default function ResumeAnalyzer() {
 
             {improvementTips.length > 0 && (
               <div style={styles.tipsSection}>
-                <h3 style={styles.sectionTitle}>💡 Improvement Tips</h3>
-                <ul style={styles.tipsList}>
+                <h3 style={styles.sectionTitle}>
+                  <span style={{ fontSize: 24, marginRight: 8 }}>💡</span>
+                  Improvement Tips
+                </h3>
+                <div style={styles.tipsList}>
                   {improvementTips.map((tip, idx) => (
-                    <li key={idx} style={styles.tipItem}>{tip}</li>
+                    <div key={idx} style={styles.tipItem}>
+                      <span style={styles.tipBullet}>→</span>
+                      <span>{tip}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
             <div style={styles.resumeSection}>
-              <h3 style={styles.sectionTitle}>📄 Optimized Resume</h3>
+              <h3 style={styles.sectionTitle}>
+                <span style={{ fontSize: 24, marginRight: 8 }}>📄</span>
+                Optimized Resume
+              </h3>
               <div style={styles.resumePreview}>
                 <pre style={styles.resumeText}>{optimizedResume}</pre>
               </div>
@@ -207,10 +257,19 @@ export default function ResumeAnalyzer() {
                 onClick={handleDownload}
                 style={{
                   ...styles.button,
-                  ...styles.primaryButton
+                  ...styles.downloadButton
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(40, 167, 69, 0.4)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(40, 167, 69, 0.3)';
                 }}
               >
-                📥 Download Optimized Resume
+                <span style={{ fontSize: 20 }}>📥</span>
+                Download Optimized Resume
               </button>
 
               <button
@@ -223,23 +282,50 @@ export default function ResumeAnalyzer() {
                 disabled={loading}
                 style={{
                   ...styles.button,
-                  ...styles.secondaryButton,
-                  opacity: loading ? 0.5 : 1,
+                  ...styles.pdfButton,
+                  opacity: loading ? 0.6 : 1,
                   cursor: loading ? 'not-allowed' : 'pointer'
                 }}
+                onMouseOver={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 6px 20px rgba(0, 123, 255, 0.3)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  if (!loading) {
+                    e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                  }
+                }}
               >
-                {loading ? '⏳ Generating PDF...' : '📄 Download as PDF'}
+                {loading ? (
+                  <>⏳ Generating PDF...</>
+                ) : (
+                  <>
+                    <span style={{ fontSize: 20 }}>📄</span>
+                    Download as PDF
+                  </>
+                )}
               </button>
 
               <button
                 onClick={() => window.location.reload()}
                 style={{
                   ...styles.button,
-                  backgroundColor: '#6c757d',
-                  color: 'white'
+                  ...styles.resetButton
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(108, 117, 125, 0.3)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
                 }}
               >
-                🔄 Start Over
+                <span style={{ fontSize: 20 }}>🔄</span>
+                Start Over
               </button>
             </div>
           </div>
@@ -251,80 +337,155 @@ export default function ResumeAnalyzer() {
 
 const styles = {
   container: {
-    padding: 20,
-    maxWidth: 1200, // Wider for diff viewer
+    padding: '40px 20px',
+    maxWidth: 1200,
     margin: '0 auto'
   },
   card: {
     backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 40,
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+    borderRadius: 16,
+    padding: 50,
+    boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+    border: '1px solid #e9ecef'
+  },
+  headerSection: {
+    textAlign: 'center',
+    marginBottom: 40
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 40,
+    margin: '0 auto 20px',
+    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.3)'
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 700,
-    textAlign: 'center',
     color: '#333',
-    margin: '0 0 10px'
+    margin: '0 0 12px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text'
   },
   description: {
-    fontSize: 18,
-    color: '#666',
-    margin: '0 0 30px',
-    textAlign: 'center'
+    fontSize: 16,
+    color: '#6c757d',
+    margin: 0,
+    lineHeight: 1.6
   },
   statusBox: {
     padding: 20,
-    backgroundColor: '#e7f3ff',
-    borderRadius: 8,
-    marginTop: 20,
-    border: '1px solid #2196F3'
+    background: 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)',
+    borderRadius: 12,
+    marginTop: 25,
+    border: '2px solid #28a745',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 15,
+    boxShadow: '0 2px 8px rgba(40, 167, 69, 0.2)'
+  },
+  statusIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: '50%',
+    background: '#28a745',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 20,
+    fontWeight: 'bold',
+    flexShrink: 0
   },
   statusText: {
     margin: 0,
     fontSize: 16,
-    color: '#1565c0'
+    color: '#155724',
+    fontWeight: 500
   },
   errorBox: {
     padding: 20,
-    backgroundColor: '#ffe7e7',
-    borderRadius: 8,
-    marginTop: 20,
-    border: '1px solid #f44336'
+    background: 'linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%)',
+    borderRadius: 12,
+    marginTop: 25,
+    border: '2px solid #dc3545',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 15,
+    boxShadow: '0 2px 8px rgba(220, 53, 69, 0.2)'
+  },
+  errorIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: '50%',
+    background: '#dc3545',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 20,
+    fontWeight: 'bold',
+    flexShrink: 0
   },
   errorText: {
     margin: 0,
     fontSize: 16,
-    color: '#c62828'
+    color: '#721c24',
+    fontWeight: 500
   },
   buttonContainer: {
     display: 'flex',
     justifyContent: 'center',
     gap: 15,
     flexWrap: 'wrap',
-    marginTop: 30
+    marginTop: 35
   },
   button: {
-    padding: '14px 32px',
-    borderRadius: 8,
-    fontSize: 18,
+    padding: '16px 36px',
+    borderRadius: 12,
+    fontSize: 16,
     fontWeight: 600,
     border: 'none',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: 'all 0.3s ease',
     display: 'flex',
     alignItems: 'center',
     gap: 10
   },
   primaryButton: {
-    backgroundColor: '#28a745',
-    color: 'white'
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
+    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
   },
   secondaryButton: {
-    backgroundColor: 'white',
-    color: '#28a745',
-    border: '2px solid #28a745'
+    background: 'white',
+    color: '#667eea',
+    border: '2px solid #667eea',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+  },
+  downloadButton: {
+    background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+    color: 'white',
+    boxShadow: '0 4px 12px rgba(40, 167, 69, 0.3)'
+  },
+  pdfButton: {
+    background: 'white',
+    color: '#007bff',
+    border: '2px solid #007bff',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+  },
+  resetButton: {
+    background: 'white',
+    color: '#6c757d',
+    border: '2px solid #dee2e6',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
   },
   spinner: {
     display: 'inline-block',
@@ -332,21 +493,49 @@ const styles = {
   },
   instructions: {
     marginTop: 50,
-    padding: 30,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8
+    padding: 35,
+    background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+    borderRadius: 12,
+    border: '2px solid #dee2e6'
   },
   instructionsTitle: {
     fontSize: 20,
-    fontWeight: 600,
-    marginBottom: 15,
-    color: '#333'
+    fontWeight: 700,
+    marginBottom: 20,
+    color: '#333',
+    display: 'flex',
+    alignItems: 'center'
   },
   instructionsList: {
-    fontSize: 16,
-    lineHeight: 1.8,
-    color: '#555',
-    paddingLeft: 20
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 15
+  },
+  instructionItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 15,
+    padding: 15,
+    background: 'white',
+    borderRadius: 8,
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    transition: 'all 0.2s ease'
+  },
+  instructionIcon: {
+    fontSize: 24,
+    flexShrink: 0,
+    width: 40,
+    height: 40,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
+    borderRadius: 8
+  },
+  instructionText: {
+    fontSize: 15,
+    color: '#495057',
+    lineHeight: 1.6
   },
   resultsContainer: {
     marginTop: 20
@@ -354,15 +543,32 @@ const styles = {
   resultsHeader: {
     textAlign: 'center',
     marginBottom: 40,
-    padding: 30,
-    backgroundColor: '#d4edda',
-    borderRadius: 8
+    padding: 40,
+    background: 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)',
+    borderRadius: 16,
+    border: '2px solid #28a745',
+    position: 'relative',
+    overflow: 'hidden'
+  },
+  successIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: '50%',
+    background: '#28a745',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 48,
+    fontWeight: 'bold',
+    margin: '0 auto 20px',
+    boxShadow: '0 6px 20px rgba(40, 167, 69, 0.3)'
   },
   resultsTitle: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 700,
     color: '#155724',
-    margin: '0 0 10px'
+    margin: '0 0 12px'
   },
   resultsSubtitle: {
     fontSize: 18,
@@ -371,42 +577,59 @@ const styles = {
   },
   tipsSection: {
     marginBottom: 30,
-    padding: 25,
-    backgroundColor: '#fff3cd',
-    borderRadius: 8,
-    border: '1px solid #ffc107'
+    padding: 30,
+    background: 'linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)',
+    borderRadius: 12,
+    border: '2px solid #ffc107',
+    boxShadow: '0 2px 8px rgba(255, 193, 7, 0.2)'
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: 600,
-    marginBottom: 15,
-    color: '#333'
+    fontWeight: 700,
+    marginBottom: 20,
+    color: '#333',
+    display: 'flex',
+    alignItems: 'center'
   },
   tipsList: {
-    margin: 0,
-    paddingLeft: 20,
-    fontSize: 16,
-    lineHeight: 1.8,
-    color: '#555'
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12
   },
   tipItem: {
-    marginBottom: 8
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 12,
+    padding: 15,
+    background: 'white',
+    borderRadius: 8,
+    fontSize: 15,
+    lineHeight: 1.6,
+    color: '#495057',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+  },
+  tipBullet: {
+    color: '#ffc107',
+    fontWeight: 'bold',
+    fontSize: 18,
+    flexShrink: 0
   },
   resumeSection: {
     marginBottom: 30
   },
   resumePreview: {
     backgroundColor: '#f8f9fa',
-    border: '1px solid #dee2e6',
-    borderRadius: 8,
-    padding: 20,
+    border: '2px solid #dee2e6',
+    borderRadius: 12,
+    padding: 25,
     maxHeight: 500,
-    overflowY: 'auto'
+    overflowY: 'auto',
+    boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.05)'
   },
   resumeText: {
     margin: 0,
     fontSize: 14,
-    lineHeight: 1.6,
+    lineHeight: 1.8,
     color: '#333',
     fontFamily: 'monospace',
     whiteSpace: 'pre-wrap',

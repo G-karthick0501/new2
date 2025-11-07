@@ -20,8 +20,43 @@ export default function Overview() {
     jobApplied: false
   });
 
+  // Progress counter: tracks individual feature usage
+  const [progressCounts, setProgressCounts] = useState({
+    jobs: 0,
+    resume: 0,
+    interview: 0,
+    coding: 0
+  });
+
   useEffect(() => {
     fetchUserStats();
+    
+    // Load progress counts from localStorage
+    try {
+      const stored = localStorage.getItem('featureProgressCounts');
+      if (stored) {
+        setProgressCounts(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('Error loading progress:', e);
+    }
+
+    // Expose global helper for other components to increment counters
+    window.incrementFeatureCounter = (feature) => {
+      setProgressCounts(prev => {
+        const updated = { ...prev, [feature]: (prev[feature] || 0) + 1 };
+        try {
+          localStorage.setItem('featureProgressCounts', JSON.stringify(updated));
+        } catch (e) {
+          console.error('Error saving progress:', e);
+        }
+        return updated;
+      });
+    };
+
+    return () => {
+      delete window.incrementFeatureCounter;
+    };
   }, []);
 
   const fetchUserStats = async () => {
@@ -55,8 +90,31 @@ export default function Overview() {
   };
 
   const handleNavigation = (tab) => {
+    // Increment the feature counter
+    if (window.incrementFeatureCounter) {
+      window.incrementFeatureCounter(tab);
+    }
+    
     // Trigger parent component's tab change
     window.dispatchEvent(new CustomEvent('changeTab', { detail: tab }));
+  };
+
+  const resetProgress = () => {
+    setProgressCounts({
+      jobs: 0,
+      resume: 0,
+      interview: 0,
+      coding: 0
+    });
+    try {
+      localStorage.removeItem('featureProgressCounts');
+    } catch (e) {
+      console.error('Error resetting progress:', e);
+    }
+  };
+
+  const getTotalProgress = () => {
+    return Object.values(progressCounts).reduce((sum, count) => sum + count, 0);
   };
 
   if (stats.loading) {
@@ -107,7 +165,94 @@ export default function Overview() {
       </div>
 
       {/* Stats Cards - Show real data or empty state */}
-      <h3 style={{ marginBottom: 15, fontSize: 18 }}>📊 Your Progress</h3>
+      <div style={{ marginBottom: 30 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+          <h3 style={{ fontSize: 18, margin: 0 }}>📊 Your Progress</h3>
+          <button 
+            onClick={resetProgress}
+            style={{
+              padding: '8px 16px',
+              fontSize: 13,
+              borderRadius: 6,
+              border: '1px solid #dee2e6',
+              background: 'white',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontWeight: 500
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = '#f8f9fa';
+              e.target.style.borderColor = '#adb5bd';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = 'white';
+              e.target.style.borderColor = '#dee2e6';
+            }}
+          >
+            Reset Progress
+          </button>
+        </div>
+
+        {/* Total Progress Card */}
+        <div style={{
+          padding: 25,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: 12,
+          marginBottom: 20,
+          color: 'white',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 14, opacity: 0.9, marginBottom: 5 }}>Total Feature Uses</div>
+              <div style={{ fontSize: 48, fontWeight: 'bold' }}>{getTotalProgress()}</div>
+            </div>
+            <div style={{ fontSize: 60, opacity: 0.3 }}>🚀</div>
+          </div>
+        </div>
+
+        {/* Individual Feature Counters Grid */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+          gap: 20
+        }}>
+          <ProgressCard
+            icon="💼"
+            title="Job Applications"
+            count={progressCounts.jobs}
+            color="#007bff"
+            description="Times you've browsed or applied"
+          />
+          
+          <ProgressCard
+            icon="📄"
+            title="Resume Optimizer"
+            count={progressCounts.resume}
+            color="#28a745"
+            description="Resume optimization sessions"
+          />
+          
+          <ProgressCard
+            icon="🎤"
+            title="Mock Interviews"
+            count={progressCounts.interview}
+            color="#17a2b8"
+            description="Interview practice sessions"
+          />
+          
+          <ProgressCard
+            icon="💻"
+            title="Coding Practice"
+            count={progressCounts.coding}
+            color="#ffc107"
+            description="Coding challenges attempted"
+          />
+        </div>
+      </div>
+
+      {/* Your Activity Stats */}
+      <h3 style={{ marginBottom: 15, fontSize: 18 }}>📈 Your Activity</h3>
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
@@ -331,6 +476,83 @@ function FeatureCard({ icon, title, description, buttonText, color, onClick }) {
       >
         {buttonText} →
       </button>
+    </div>
+  );
+}
+
+// Progress Card Component - for tracking feature usage
+function ProgressCard({ icon, title, count, color, description }) {
+  return (
+    <div style={{
+      padding: 20,
+      border: `2px solid ${color}20`,
+      borderRadius: 10,
+      background: `linear-gradient(135deg, ${color}08 0%, ${color}15 100%)`,
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'all 0.3s ease'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-4px)';
+      e.currentTarget.style.boxShadow = `0 8px 20px ${color}30`;
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = 'none';
+    }}
+    >
+      {/* Background Icon */}
+      <div style={{
+        position: 'absolute',
+        right: -10,
+        bottom: -10,
+        fontSize: 80,
+        opacity: 0.1
+      }}>
+        {icon}
+      </div>
+
+      {/* Content */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>{icon}</div>
+        <h4 style={{ fontSize: 15, marginBottom: 8, color: '#333', fontWeight: 600 }}>
+          {title}
+        </h4>
+        
+        {/* Counter with animation */}
+        <div style={{
+          fontSize: 36,
+          fontWeight: 'bold',
+          color: color,
+          marginBottom: 5,
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 5
+        }}>
+          {count}
+          <span style={{ fontSize: 16, color: '#666', fontWeight: 'normal' }}>uses</span>
+        </div>
+        
+        <p style={{ fontSize: 13, color: '#6c757d', margin: 0 }}>
+          {description}
+        </p>
+
+        {/* Progress Bar */}
+        <div style={{
+          marginTop: 12,
+          height: 4,
+          background: '#e9ecef',
+          borderRadius: 2,
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${Math.min(count * 10, 100)}%`,
+            background: color,
+            transition: 'width 0.5s ease'
+          }} />
+        </div>
+      </div>
     </div>
   );
 }

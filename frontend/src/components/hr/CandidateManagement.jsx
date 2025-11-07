@@ -4,21 +4,44 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function CandidateManagement() {
   const [applications, setApplications] = useState([]);
+  const [debugInfo, setDebugInfo] = useState(null);
 
   useEffect(() => {
+    // Log the current user to help debug
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log('👤 Current user:', payload);
+        setDebugInfo(payload);
+      } catch (e) {
+        console.error('Could not decode token');
+      }
+    }
     fetchApplications();
   }, []);
 
   const fetchApplications = async () => {
     try {
+      console.log('📥 Fetching applications from HR dashboard...');
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/api/applications`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('❌ Failed to fetch:', errorData);
+        throw new Error(errorData.msg || 'Failed to fetch applications');
+      }
+      
       const data = await res.json();
+      console.log('✅ Received applications:', data.length);
+      console.log('📄 Applications data:', data);
       setApplications(data);
     } catch (error) {
-      console.error('Failed to fetch applications:', error);
+      console.error('❌ Failed to fetch applications:', error);
+      alert('Error loading applications: ' + error.message);
     }
   };
 
@@ -78,12 +101,72 @@ export default function CandidateManagement() {
     }
   };
 
+  const checkJobsAndApplications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch debug info
+      const debugRes = await fetch(`${API_BASE}/api/applications/debug/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const debugData = await debugRes.json();
+      
+      console.log('🔍 DEBUG INFO:', debugData);
+      console.log('📊 Total applications in DB:', debugData.totalApplications);
+      console.log('🏢 Your jobs:', debugData.yourJobs);
+      console.log('📋 Applications breakdown:', debugData.allApplications);
+      
+      const yourApps = debugData.allApplications.filter(a => a.isYourJob);
+      
+      alert(
+        `Debug Results:\n\n` +
+        `Total Applications in DB: ${debugData.totalApplications}\n` +
+        `Your Job Posts: ${debugData.yourJobs}\n` +
+        `Applications for YOUR jobs: ${yourApps.length}\n\n` +
+        `Check browser console for detailed breakdown.`
+      );
+      
+    } catch (error) {
+      console.error('Debug check failed:', error);
+      alert('Debug failed. Check console.');
+    }
+  };
+
   return (
     <div>
-      <h2>👥 Applications ({applications.length})</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2>👥 Applications ({applications.length})</h2>
+        <button 
+          onClick={checkJobsAndApplications}
+          style={{
+            padding: '10px 20px',
+            background: '#17a2b8',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          🔍 Debug: Check Jobs & Applications
+        </button>
+      </div>
+
+      {debugInfo && (
+        <div style={{ padding: '10px', background: '#e7f3ff', borderRadius: '5px', marginBottom: '15px', fontSize: '12px' }}>
+          <strong>Debug Info:</strong> Logged in as {debugInfo.email} (Role: {debugInfo.role})
+        </div>
+      )}
 
       {applications.length === 0 ? (
-        <p>No applications yet</p>
+        <div style={{ padding: '40px', textAlign: 'center', background: '#f8f9fa', borderRadius: '8px', marginTop: '20px' }}>
+          <p style={{ fontSize: '18px', color: '#666', marginBottom: '10px' }}>No applications yet</p>
+          <p style={{ fontSize: '14px', color: '#999' }}>
+            Applications will appear here once candidates apply to your job posts.
+            <br />
+            Make sure you have active job posts to receive applications.
+          </p>
+        </div>
       ) : (
         <div style={{ display: 'grid', gap: 15 }}>
           {applications.map(app => (

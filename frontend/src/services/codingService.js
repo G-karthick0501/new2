@@ -3,10 +3,27 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export const codingService = {
   async getProblems() {
     const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/api/coding-problems`, {
+    const url = `${API_BASE}/api/coding-problems`;
+    
+    console.log('🔍 Fetching problems from:', url);
+    console.log('🔑 Token:', token ? 'Present' : 'Missing');
+    
+    const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    return res.json();
+    
+    console.log('📡 Response status:', res.status);
+    console.log('📡 Response headers:', res.headers);
+    
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('❌ API Error:', res.status, text.substring(0, 200));
+      throw new Error(`Failed to fetch problems: ${res.status} - ${text.substring(0, 100)}`);
+    }
+    
+    const data = await res.json();
+    console.log('✅ Fetched problems:', data);
+    return data;
   },
 
   async getProblem(id) {
