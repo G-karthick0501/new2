@@ -10,7 +10,7 @@ import CandidateDashboard from "./pages/CandidateDashboard.jsx";
 import HRDashboard from "./pages/HRDashboard.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import NotificationBell from "./components/shared/NotificationBell.jsx";
-
+import WebcamTest from './components/test/WebcamTest';
 
 function AppContent() {
   const { user, isAuthenticated } = useAuth();
@@ -64,6 +64,7 @@ function AppContent() {
             </ProtectedRoute>
           } 
         />
+        <Route path="/test-webcam" element={<WebcamTest />} />
 
         {/* Catch-all redirect */}
         <Route path="*" element={<div>404 - Page not found</div>} />

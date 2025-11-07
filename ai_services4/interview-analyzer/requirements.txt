@@ -10,6 +10,9 @@ torch==2.1.0
 transformers==4.35.2
 sentence-transformers==2.2.2
 huggingface-hub==0.16.4
+deepface>=0.0.79
+opencv-python>=4.8.0
+tensorflow>=2.13.0
 
 
 ##python -m nltk.downloader averaged_perceptron_tagger_eng punkt wordnet stopwords vader_lexicon

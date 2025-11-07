@@ -575,6 +575,44 @@ router.get("/results/:sessionId", auth, async (req, res) => {
   }
 });
 
+// ============================================
+// TEST ENDPOINT: Receive frame from frontend
+// ============================================
+router.post("/test-frame", upload.single('frame'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: "No frame received" });
+    }
+
+    console.log('📸 Frame received:', {
+      size: `${Math.round(req.file.size / 1024)}KB`,
+      mimetype: req.file.mimetype,
+      fieldname: req.file.fieldname
+    });
+
+    // Simulate processing delay (like emotion analysis would take)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Return mock emotion data
+    const mockEmotions = {
+      success: true,
+      dominant_emotion: "neutral",
+      confidence: 75,
+      all_emotions: {
+        neutral: 75,
+        happy: 15,
+        focused: 10
+      },
+      frame_size_kb: Math.round(req.file.size / 1024),
+      processing_time_ms: 500
+    };
+
+    res.json(mockEmotions);
+  } catch (error) {
+    console.error('❌ Frame processing error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 // ===============================================
 // END OF NEW ROUTES
 // Keep existing: module.exports = router;
