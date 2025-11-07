@@ -135,9 +135,9 @@ export default function WebcamTest() {
 
         try {
           const formData = new FormData();
-          formData.append('frame', blob, 'frame.jpg');
+          formData.append('file', blob, 'frame.jpg');
 
-          const response = await fetch('http://localhost:8001/api/analyze-video-emotion', {
+          const response = await fetch('http://localhost:8001/analyze-video-emotion', {
             method: 'POST',
             body: formData
           });
@@ -164,7 +164,7 @@ export default function WebcamTest() {
         } finally {
           setIsSending(false);
         }
-      }, 'image/jpeg', 0.8);
+      }, 'image/jpeg', 0.95);
 
     } catch (err) {
       setError(`Send failed: ${err.message}`);
