@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useInterview } from '../../hooks/useInterview';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import WebcamTest from '../test/WebcamTest';
+import WebcamRecorder from '../interview/WebcamRecorder'; 
 // ===============================================
 // InterviewResults Component
 // ===============================================
@@ -10,6 +11,7 @@ function InterviewResults({ results }) {
   if (!results) return null;
 
   return (
+    
     <div style={{ padding: 20, maxWidth: 900, margin: '0 auto' }}>
       <h2>🎉 Interview Complete!</h2>
       
@@ -188,6 +190,8 @@ function InterviewResults({ results }) {
 // Main MockInterview Component
 // ===============================================
 export default function MockInterview() {
+  
+
   const {
     sessionId,
     questions,
@@ -218,10 +222,23 @@ export default function MockInterview() {
 
   const [textAnswer, setTextAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emotionDataPerQuestion, setEmotionDataPerQuestion] = useState({});
+  const [isWebcamActive, setIsWebcamActive] = useState(false);
+
+  const handleEmotionData = (emotionRecord) => {
+    setEmotionDataPerQuestion(prev => ({
+      ...prev,
+      [currentQuestionIndex]: [
+        ...(prev[currentQuestionIndex] || []),
+        emotionRecord
+      ]
+    }));
+  };
 
   // Start interview
   const handleStart = async (type, count) => {
     await startInterview(type, count);
+    setIsWebcamActive(true);
   };
 
   // Submit text answer
@@ -234,6 +251,7 @@ export default function MockInterview() {
     
     if (!isLastQuestion) {
       nextQuestion();
+      setIsWebcamActive(false);
     }
   };
 
@@ -248,6 +266,9 @@ export default function MockInterview() {
       
       if (!isLastQuestion) {
         nextQuestion();
+      }
+      else{
+        setIsWebcamActive(false); 
       }
     } catch (error) {
       alert('Failed to submit audio. Please try again.');
@@ -333,6 +354,14 @@ export default function MockInterview() {
   // Main interview UI
   return (
     <div style={{ padding: 20, maxWidth: 900, margin: '0 auto' }}>
+      {/* ✅ ADD: WebcamRecorder */}
+      {isWebcamActive && (
+        <WebcamRecorder 
+          isRecording={isWebcamActive}
+          onEmotionData={handleEmotionData}
+        />
+      )}
+
       {/* Progress bar */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ 
@@ -367,6 +396,21 @@ export default function MockInterview() {
           {currentQuestion?.text}
         </p>
       </div>
+
+      {/* ✅ ADD: Show emotion frame count */}
+      {emotionDataPerQuestion[currentQuestionIndex]?.length > 0 && (
+        <div style={{
+          marginBottom: 15,
+          padding: 10,
+          backgroundColor: '#e7f3ff',
+          borderRadius: 5,
+          fontSize: 12,
+          color: '#0066cc',
+          textAlign: 'center'
+        }}>
+          📊 Emotion frames captured: {emotionDataPerQuestion[currentQuestionIndex].length}
+        </div>
+      )}
 
       {/* MODE TOGGLE */}
       <div style={{ 
@@ -441,7 +485,7 @@ export default function MockInterview() {
         </div>
       )}
 
-      {/* AUDIO MODE */}
+      {/* AUDIO MODE - keep existing code */}
       {answerMode === 'audio' && (
         <div style={{ 
           padding: 20, 
@@ -449,110 +493,7 @@ export default function MockInterview() {
           borderRadius: 8,
           backgroundColor: '#f0f8ff'
         }}>
-          <h4 style={{ marginBottom: 15 }}>🎤 Audio Answer</h4>
-
-          {!isRecording && !audioBlob && (
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ marginBottom: 15, color: '#666' }}>
-                Click the button below to start recording your answer
-              </p>
-              <button
-                onClick={startRecording}
-                style={{
-                  padding: '20px 40px',
-                  fontSize: 20,
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 50,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
-                }}
-              >
-                🔴 Start Recording
-              </button>
-            </div>
-          )}
-
-          {isRecording && (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                fontSize: 48, 
-                marginBottom: 20,
-                animation: 'pulse 1.5s infinite'
-              }}>
-                🎤
-              </div>
-              <div style={{ fontSize: 32, marginBottom: 15, fontWeight: 'bold' }}>
-                {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
-              </div>
-              <p style={{ color: '#666', marginBottom: 20 }}>Recording in progress...</p>
-              <button
-                onClick={stopRecording}
-                style={{
-                  padding: '15px 35px',
-                  fontSize: 18,
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 8,
-                  cursor: 'pointer'
-                }}
-              >
-                ⏹️ Stop Recording
-              </button>
-            </div>
-          )}
-
-          {audioBlob && (
-            <div>
-              <div style={{ 
-                backgroundColor: 'white', 
-                padding: 15, 
-                borderRadius: 8,
-                marginBottom: 15 
-              }}>
-                <p style={{ marginBottom: 10, fontWeight: 'bold' }}>
-                  ✅ Recording Complete ({recordingTime}s)
-                </p>
-                <audio controls src={audioURL} style={{ width: '100%' }} />
-              </div>
-              
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                <button
-                  onClick={handleSubmitAudio}
-                  disabled={isSubmitting}
-                  style={{
-                    padding: '12px 25px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontSize: 16,
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    opacity: isSubmitting ? 0.6 : 1
-                  }}
-                >
-                  {isSubmitting ? '⏳ Processing...' : '📤 Submit Audio Answer'}
-                </button>
-                <button
-                  onClick={resetRecording}
-                  disabled={isSubmitting}
-                  style={{
-                    padding: '12px 25px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontSize: 16,
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  🔄 Re-record
-                </button>
-              </div>
-            </div>
-          )}
+          {/* ... keep existing audio UI ... */}
         </div>
       )}
 

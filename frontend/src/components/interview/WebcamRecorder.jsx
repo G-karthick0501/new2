@@ -85,7 +85,7 @@ export default function WebcamRecorder({ isRecording, onEmotionData }) {
       const formData = new FormData();
       formData.append('file', blob, 'frame.jpg');
 
-      const response = await fetch('http://localhost:8001/analyze-emotion', {
+      const response = await fetch('http://localhost:8001/analyze-video-emotion', {
         method: 'POST',
         body: formData
       });
