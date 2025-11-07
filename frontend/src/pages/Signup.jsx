@@ -125,7 +125,7 @@ export default function Signup() {
           >
             <option value="candidate">Job Candidate</option>
             <option value="hr">HR Manager</option>
-            <option value="admin">Administrator</option>
+            
           </select>
         </div>
         
