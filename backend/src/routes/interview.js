@@ -498,4 +498,86 @@ router.post("/complete", auth, async (req, res) => {
   }
 });
 
+
+// ===============================================
+// NEW ROUTES FOR HR DASHBOARD - ADD BEFORE module.exports
+// ===============================================
+
+// GET /api/interview/results/all - Fetch all completed interviews (HR ONLY)
+router.get("/results/all", auth, async (req, res) => {
+  try {
+    // Only HR and Admin can access
+    if (req.user.role !== 'hr' && req.user.role !== 'admin') {
+      return res.status(403).json({ msg: "Access denied. HR only." });
+    }
+
+    console.log('📊 HR fetching all interview results');
+
+    // Fetch all completed interviews with candidate details
+    const interviews = await InterviewSession.find({
+      status: { $in: ['completed', 'ai_processing'] }
+    })
+      .populate('userId', 'name email') // Get candidate name and email
+      .sort({ completedAt: -1 }) // Most recent first
+      .lean(); // Convert to plain JS objects for better performance
+
+    // Calculate summary statistics
+    const stats = {
+      total: interviews.length,
+      completed: interviews.filter(i => i.status === 'completed').length,
+      aiProcessed: interviews.filter(i => i.aiAnalysis?.processed).length,
+      avgScore: interviews.length > 0 
+        ? Math.round(interviews.reduce((sum, i) => sum + (i.overallScore || 0), 0) / interviews.length)
+        : 0
+    };
+
+    console.log(`✅ Returning ${interviews.length} interview sessions`);
+
+    res.json({
+      success: true,
+      interviews: interviews,
+      stats: stats
+    });
+
+  } catch (error) {
+    console.error('❌ Failed to fetch interview results:', error);
+    res.status(500).json({ msg: "Failed to fetch interview results" });
+  }
+});
+
+
+// GET /api/interview/results/:sessionId - Fetch single interview details
+router.get("/results/:sessionId", auth, async (req, res) => {
+  try {
+    const session = await InterviewSession.findById(req.params.sessionId)
+      .populate('userId', 'name email');
+
+    if (!session) {
+      return res.status(404).json({ msg: "Interview session not found" });
+    }
+
+    // Authorization: HR/Admin or the candidate who took the interview
+    const isHR = req.user.role === 'hr' || req.user.role === 'admin';
+    const isOwner = session.userId._id.toString() === req.user.uid.toString();
+
+    if (!isHR && !isOwner) {
+      return res.status(403).json({ msg: "Access denied" });
+    }
+
+    res.json({
+      success: true,
+      session: session
+    });
+
+  } catch (error) {
+    console.error('❌ Failed to fetch interview session:', error);
+    res.status(500).json({ msg: "Failed to fetch interview session" });
+  }
+});
+
+// ===============================================
+// END OF NEW ROUTES
+// Keep existing: module.exports = router;
+// ===============================================
+
 module.exports = router;

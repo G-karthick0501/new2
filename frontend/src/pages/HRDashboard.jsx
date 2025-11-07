@@ -5,9 +5,9 @@ import DashboardLayout from "../components/shared/DashboardLayout";
 import Overview from "../components/hr/Overview";
 import CandidateManagement from "../components/hr/CandidateManagement";
 import JobManagement from "../components/hr/JobManagement";
-import InterviewManagement from "../components/hr/InterviewManagement";
-import Analytics from "../components/hr/Analytics";
-
+// import InterviewManagement from "../components/hr/InterviewManagement";
+// import Analytics from "../components/hr/Analytics";
+import InterviewResultsHR from "../components/hr/InterviewResultsHR";
 export default function HRDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
@@ -25,8 +25,8 @@ export default function HRDashboard() {
     { id: 'overview', label: '📊 Overview' },
     { id: 'candidates', label: '👥 Candidates' },
     { id: 'jobs', label: '💼 Job Posts' },
-    { id: 'interviews', label: '🎤 Interviews' },
-    { id: 'analytics', label: '📈 Analytics' }
+    { id: 'interviews', label: '🎤 Interview Analytics' }
+    
   ];
 
   return (
@@ -41,8 +41,8 @@ export default function HRDashboard() {
       {activeTab === 'overview' && <Overview />}
       {activeTab === 'candidates' && <CandidateManagement />}
       {activeTab === 'jobs' && <JobManagement />}
-      {activeTab === 'interviews' && <InterviewManagement />}
-      {activeTab === 'analytics' && <Analytics />}
+      {activeTab === 'interviews' && <InterviewResultsHR />}
+      
     </DashboardLayout>
   );
 }
