@@ -94,36 +94,34 @@ export function useInterview() {
   };
 
   // ✅ ENHANCED: completeInterview with better logging
-  const completeInterview = async () => {
+  // In src/hooks/useInterview.js
+  const completeInterview = async (emotionSummary = null) => {
     setIsLoading(true);
     try {
-      console.log(`🏁 Completing interview session: ${sessionId}`);
-      
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/interview/complete`, {
+      const response = await fetch(`http://localhost:5000/api/interview/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ sessionId })
+        body: JSON.stringify({ 
+          sessionId,
+          emotionSummary // ✅ Pass emotion data
+        })
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to complete interview');
-      }
-      
+
       const data = await response.json();
       setResults(data);
-      
-      console.log(`✅ Interview completed with score: ${data.score}%`);
-      
+      console.log('✅ Interview completed with results:', data);
     } catch (error) {
-      console.error('❌ Failed to complete interview:', error);
-      alert('Failed to complete interview. Please try again.');
+      console.error('❌ Complete interview error:', error);
+      alert('Failed to complete interview');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
+  
 
   // ✅ ENHANCEMENT: Add reset function
   const resetInterview = () => {

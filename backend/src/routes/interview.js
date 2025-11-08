@@ -1,3 +1,5 @@
+
+// multer import and upload instance moved to the "Multer configuration" section below
 // backend/src/routes/interview.js - SEQUENTIAL PROCESSING
 const express = require("express");
 const auth = require("../middleware/auth");
@@ -372,14 +374,26 @@ function generateOverallRecommendation(strengths, weaknesses) {
 // ===============================================
 // ROUTE: Complete Interview
 // ===============================================
+// ===============================================
+// ROUTE: Complete Interview
+// ===============================================
 router.post("/complete", auth, async (req, res) => {
   try {
-    const { sessionId } = req.body;
+    const { sessionId, emotionSummary } = req.body; // ✅ Accept emotionSummary
     console.log(`🏁 Completing interview session: ${sessionId}`);
     
     const session = await InterviewSession.findById(sessionId);
     if (!session) {
       return res.status(404).json({ msg: "Session not found" });
+    }
+
+    // ✅ Save emotion summary if provided
+    if (emotionSummary) {
+      session.emotionSummary = emotionSummary;
+      console.log('🎭 Emotion summary received:', {
+        total_frames: emotionSummary.total_frames,
+        top_emotion: emotionSummary.top_3_emotions?.[0]?.emotion
+      });
     }
     
     const answeredQuestions = session.questions.filter(
@@ -393,7 +407,7 @@ router.post("/complete", auth, async (req, res) => {
     console.log(`📊 Analyzing ${answeredQuestions.length} questions`);
     
     session.status = 'ai_processing';
-    await session.save();
+    await session.save(); // ✅ Save with emotion data
     
     let aiAnalysisResults = null;
     const startTime = Date.now();
@@ -445,6 +459,7 @@ router.post("/complete", auth, async (req, res) => {
     await session.save();
     
     console.log('✅ Interview completed');
+    console.log('🎭 Final emotion summary:', session.emotionSummary); // ✅ Debug log
     
     if (aiAnalysisResults) {
       const detailedAnalysis = answeredQuestions.map((q, index) => ({
@@ -452,6 +467,7 @@ router.post("/complete", auth, async (req, res) => {
         userResponse: q.userResponse,
         timeSpent: q.timeSpent,
         audioEmotion: q.audioEmotion || null,
+        videoEmotion: q.emotionSummary || null, // ✅ Include video emotion
         objective: aiAnalysisResults.questionsAnalysis[index]?.objective || {},
         semantic: aiAnalysisResults.questionsAnalysis[index]?.semantic || {},
         llmFeedback: aiAnalysisResults.questionsAnalysis[index]?.llm_feedback || {
@@ -475,6 +491,7 @@ router.post("/complete", auth, async (req, res) => {
         hasAiAnalysis: true,
         analysisType: 'ai_powered',
         overallAnalysis: aiAnalysisResults.overallAnalysis,
+        emotionSummary: session.emotionSummary || null, // ✅ Return emotion data
         completedAt: session.completedAt
       });
       
@@ -486,6 +503,7 @@ router.post("/complete", auth, async (req, res) => {
         feedback: session.feedback || ["Analysis failed - please try again"],
         questionsAnswered: answeredQuestions.length,
         totalQuestions: session.questions.length,
+        emotionSummary: session.emotionSummary || null, // ✅ Return emotion data
         hasAiAnalysis: false,
         detailedAnalysis: [],
         error: session.aiAnalysis?.errorMessage
@@ -572,6 +590,63 @@ router.get("/results/:sessionId", auth, async (req, res) => {
   } catch (error) {
     console.error('❌ Failed to fetch interview session:', error);
     res.status(500).json({ msg: "Failed to fetch interview session" });
+  }
+});
+
+
+// ===============================================
+// EMOTION TRACKING ENDPOINTS
+// ===============================================
+
+// Save per-question emotion summary
+router.post("/:sessionId/question/:questionIndex/emotion-summary", auth, async (req, res) => {
+  try {
+    const { sessionId, questionIndex } = req.params;
+    const { summary } = req.body;
+
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ msg: "Session not found" });
+    }
+
+    // Update the specific question with emotion data
+    if (session.questions[questionIndex]) {
+      session.questions[questionIndex].emotionSummary = summary;
+      await session.save();
+      console.log(`✅ Saved emotion summary for Q${questionIndex}`);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Failed to save question emotion:', error);
+    res.status(500).json({ msg: "Failed to save emotion data" });
+  }
+});
+
+// Save overall emotion summary
+router.post("/:sessionId/emotion-summary", auth, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { overall_summary } = req.body;
+
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ msg: "Session not found" });
+    }
+
+    // Save overall emotion summary
+    session.emotionSummary = overall_summary;
+    await session.save();
+
+    console.log('✅ Saved overall emotion summary:', {
+      total_frames: overall_summary.total_frames,
+      top_emotion: overall_summary.top_3_emotions?.[0]?.emotion
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Failed to save overall emotion:', error);
+    res.status(500).json({ msg: "Failed to save emotion data" });
   }
 });
 

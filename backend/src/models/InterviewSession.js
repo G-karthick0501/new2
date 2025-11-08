@@ -3,27 +3,23 @@ const mongoose = require("mongoose");
 const interviewSessionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   interviewType: { type: String, enum: ['technical', 'behavioral'], required: true },
-
-  // ✅ ENHANCEMENT: Add questionCount tracking
   questionCount: { type: Number, default: 5 },
 
-  // ✅ ENHANCEMENT: Enhanced questions array with AI analysis
   questions: [
     {
       questionText: String,
       questionId: Number,
       category: String,
 
-      // Text response (typed OR transcribed)
       userResponse: String,
-      timeSpent: Number, // seconds
+      timeSpent: Number,
 
       audioFile: String,
-      recordingDuration: Number, // seconds
+      recordingDuration: Number,
 
       audioEmotion: {
-        dominant: String, // 'confident', 'nervous', 'happy'
-        confidence: Number, // 0.0 to 1.0
+        dominant: String,
+        confidence: Number,
         allScores: {
           happy: Number,
           sad: Number,
@@ -31,9 +27,30 @@ const interviewSessionSchema = new mongoose.Schema({
           fear: Number,
           neutral: Number,
         },
+        chunks: Array,
+        audioMetrics: Object,
+        interpretation: String
       },
 
-      // ✅ NEW: AI analysis for each question
+      // ✅ ADD THIS: Video emotion tracking per question
+      emotionSummary: {
+        question_index: Number,
+        total_frames: Number,
+        dominant_emotion: String,
+        top_3_emotions: [
+          {
+            emotion: String,
+            percentage: Number
+          }
+        ],
+        stats: {
+          mean_confidence: Number,
+          median_confidence: Number,
+          mode_emotion: String
+        },
+        emotion_distribution: Object
+      },
+
       analysis: {
         objective: {
           word_count: Number,
@@ -56,11 +73,9 @@ const interviewSessionSchema = new mongoose.Schema({
     },
   ],
 
-  // ✅ KEEP: Basic scoring (for backward compatibility)
   overallScore: { type: Number, default: 0 },
   feedback: [String],
 
-  // ✅ NEW: AI-powered overall analysis
   overallAnalysis: {
     strengths: [String],
     weaknesses: [String],
@@ -69,13 +84,30 @@ const interviewSessionSchema = new mongoose.Schema({
     recommendation: String,
   },
 
-  // ✅ NEW: AI service metadata
+  // ✅ ADD THIS: Overall emotion summary
+  emotionSummary: {
+    total_frames: Number,
+    total_questions: Number,
+    top_3_emotions: [
+      {
+        emotion: String,
+        percentage: Number
+      }
+    ],
+    stats: {
+      mean_confidence: Number,
+      median_confidence: Number,
+      mode_emotion: String
+    },
+    emotions_by_question: Object
+  },
+
   aiAnalysis: {
     processed: { type: Boolean, default: false },
-    processingTime: Number, // milliseconds
+    processingTime: Number,
     aiServiceVersion: String,
     processedAt: Date,
-    errorMessage: String, // if AI analysis failed
+    errorMessage: String,
   },
 
   status: {
@@ -87,7 +119,6 @@ const interviewSessionSchema = new mongoose.Schema({
   completedAt: Date,
 }, { timestamps: true });
 
-// ✅ NEW: Add helper methods
 interviewSessionSchema.methods.hasAIAnalysis = function () {
   return this.aiAnalysis && this.aiAnalysis.processed;
 };
